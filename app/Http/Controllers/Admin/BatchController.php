@@ -8,6 +8,11 @@ use Illuminate\Support\Carbon;
 
 class BatchController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view-batch');
+    }
+
     /**
      * Display batch/lot list with expiry alerts and FEFO pick suggestion.
      */

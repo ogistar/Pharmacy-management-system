@@ -9,6 +9,13 @@ use Illuminate\Support\Facades\DB;
 
 class CashSessionController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view-cash-session')->only(['index']);
+        $this->middleware('permission:open-cash-session')->only(['open']);
+        $this->middleware('permission:close-cash-session')->only(['close']);
+    }
+
     public function index(Request $request)
     {
         $title = 'cash sessions';

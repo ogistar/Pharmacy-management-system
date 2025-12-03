@@ -12,6 +12,11 @@ use Illuminate\Support\Facades\DB;
 
 class SaleReturnController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:create-sale-return')->only(['store','search','preview']);
+    }
+
     public function store(Request $request)
     {
         $data = $request->validate([

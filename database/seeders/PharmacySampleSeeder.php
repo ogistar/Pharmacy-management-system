@@ -19,6 +19,7 @@ use App\Models\StockAdjustment;
 use App\Models\StockOpname;
 use App\Models\StockTransfer;
 use App\Models\Supplier;
+use App\Models\StockMovement;
 use App\Models\User;
 use App\Models\Prescription;
 use App\Models\PrescriptionItem;

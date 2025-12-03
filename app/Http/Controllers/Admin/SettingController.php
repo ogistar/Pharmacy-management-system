@@ -8,5 +8,10 @@ use QCod\AppSettings\SavesSettings;
 
 class SettingController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view-settings');
+    }
+
     use SavesSettings;
 }

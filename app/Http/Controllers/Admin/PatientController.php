@@ -10,6 +10,14 @@ use Illuminate\Support\Facades\Schema;
 
 class PatientController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view-patient')->only(['index','search']);
+        $this->middleware('permission:create-patient')->only(['store']);
+        $this->middleware('permission:edit-patient')->only(['update']);
+        $this->middleware('permission:destroy-patient')->only(['destroy']);
+    }
+
     /**
      * Search endpoint used by the POS LOV/autocomplete.
      */

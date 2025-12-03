@@ -11,6 +11,15 @@ use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view-users')->only(['index','show']);
+        $this->middleware('permission:create-user')->only(['create','store']);
+        $this->middleware('permission:edit-user')->only(['edit','update']);
+        $this->middleware('permission:destroy-user')->only(['destroy']);
+        // profile & password updates remain accessible to authenticated user
+    }
+
     /**
      * Display a listing of the resource.
      *

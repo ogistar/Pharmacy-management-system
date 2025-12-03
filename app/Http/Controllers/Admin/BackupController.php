@@ -14,6 +14,12 @@ use League\Flysystem\Adapter\Local;
 
 class BackupController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:backup-app')->only(['index','create','destroy']);
+        $this->middleware('permission:backup-db|backup-app')->only(['download']);
+    }
+
     /**
      * Display a listing of the resource.
      *

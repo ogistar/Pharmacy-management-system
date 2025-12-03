@@ -5,47 +5,65 @@
 			
 			<ul>
 				<li class="menu-title"><span>{{ __('menu.main') }}</span></li>
+				@can('view-reports')
 				<li class="{{ route_is('dashboard') ? 'active' : '' }}">
 					<a href="{{ route('dashboard') }}"><i class="fas fa-home"></i> <span>{{ __('menu.dashboard') }}</span></a>
 				</li>
+				@endcan
 
+				@canany(['view-sales','view-receivable','view-cash-session'])
 				<li class="menu-title"><span>{{ __('menu.sales_section') }}</span></li>
 				<li class="submenu {{ route_is('pos.*') || route_is('receivables.*') || route_is('cash-sessions.*') ? 'active' : '' }}">
 					<a href="#"><i class="fas fa-shopping-cart"></i> <span>{{ __('menu.sales') }}</span> <span class="menu-arrow"></span></a>
 					<ul>
+						@can('view-sales')
 						<li class="{{ route_is('pos.*') ? 'active' : '' }}">
 							<a href="{{ route('pos.index') }}">
 								<i class="fas fa-cash-register"></i> <span>{{ __('menu.pos') }}</span>
 							</a>
 						</li>
+						@endcan
+						@can('view-receivable')
 						<li class="{{ route_is('receivables.*') ? 'active' : '' }}">
 							<a href="{{ route('receivables.index') }}">
 								<i class="fas fa-file-invoice-dollar"></i> <span>{{ __('menu.receivables') }}</span>
 							</a>
 						</li>
+						@endcan
+						@can('view-cash-session')
 						<li class="{{ route_is('cash-sessions.*') ? 'active' : '' }}">
 							<a href="{{ route('cash-sessions.index') }}">
 								<i class="fas fa-stopwatch"></i> <span>{{ __('menu.cash_sessions') }}</span>
 							</a>
 						</li>
+						@endcan
 					</ul>
 				</li>
+				@endcanany
 
+				@canany(['view-patient','view-prescription','view-compound'])
 				<li class="menu-title"><span>{{ __('menu.patients_prescriptions') }}</span></li>
 				<li class="submenu {{ route_is('patients.*') || route_is('prescriptions.*') || route_is('compounds.*') ? 'active' : '' }}">
 					<a href="#"><i class="fas fa-notes-medical"></i> <span>{{ __('menu.patients_prescriptions') }}</span> <span class="menu-arrow"></span></a>
 					<ul>
+						@can('view-patient')
 						<li class="{{ route_is('patients.*') ? 'active' : '' }}">
 							<a href="{{ route('patients.index') }}"><i class="fas fa-user-check"></i> <span>{{ __('menu.patients') }}</span></a>
 						</li>
+						@endcan
+						@can('view-prescription')
 						<li class="{{ route_is('prescriptions.*') ? 'active' : '' }}">
 							<a href="{{ route('prescriptions.index') }}"><i class="fas fa-file-medical"></i> <span>{{ __('menu.prescriptions') }}</span></a>
 						</li>
+						@endcan
+						@can('view-compound')
 						<li class="{{ route_is('compounds.*') ? 'active' : '' }}">
 							<a href="{{ route('compounds.index') }}"><i class="fas fa-prescription-bottle-alt"></i> <span>{{ __('menu.compounds') }}</span></a>
 						</li>
+						@endcan
 					</ul>
 				</li>
+				@endcanany
 
 				<li class="menu-title"><span>{{ __('menu.inventory_products') }}</span></li>
 				@can('view-category')
@@ -81,18 +99,22 @@
 				</li>
 				@endcan
 
-				@can('view-products')
+				@can('view-batch')
 				<li class="{{ route_is('batches.*') ? 'active' : '' }}">
 					<a href="{{ route('batches.index') }}"><i class="fas fa-layer-group"></i> <span>{{ __('menu.batches') }}</span></a>
 				</li>
+				@endcan
+				@can('view-stock-opname')
 				<li class="{{ route_is('stock-opnames.*') ? 'active' : '' }}">
 					<a href="{{ route('stock-opnames.index') }}"><i class="fas fa-clipboard-check"></i> <span>{{ __('menu.stock_opname') }}</span></a>
 				</li>
 				@endcan
 
+				@canany(['create-sale-return','create-purchase-return','create-stock-adjustment','create-stock-transfer'])
 				<li class="{{ route_is('stock-tools.index') ? 'active' : '' }}">
 					<a href="{{ route('stock-tools.index') }}"><i class="fas fa-undo-alt"></i> <span>{{ __('menu.returns_stock') }}</span></a>
 				</li>
+				@endcanany
 
 				@canany(['view-purchase', 'view-supplier'])
 				<li class="submenu {{ route_is('purchases.*') || route_is('suppliers.*') ? 'active' : '' }}">
@@ -116,13 +138,19 @@
 				</li>
 				@endcanany
 
+				@canany(['view-patient','view-prescription'])
 				<li class="menu-title"><span>Layanan</span></li>
+				@can('view-patient')
 				<li class="{{ route_is('patients.*') ? 'active' : '' }}">
 					<a href="{{ route('patients.index') }}"><i class="fas fa-user-check"></i> <span>{{ __('menu.patients') }}</span></a>
 				</li>
+				@endcan
+				@can('view-prescription')
 				<li class="{{ route_is('prescriptions.*') ? 'active' : '' }}">
 					<a href="{{ route('prescriptions.index') }}"><i class="fas fa-file-medical"></i> <span>{{ __('menu.prescriptions') }}</span></a>
 				</li>
+				@endcan
+				@endcanany
 
 				@can('view-reports')
 				<li class="menu-title"><span>Laporan</span></li>
@@ -175,9 +203,11 @@
 				<li class="{{ route_is('profile') ? 'active' : '' }}">
 					<a href="{{ route('profile') }}"><i class="fas fa-user-circle"></i> <span>{{ __('menu.profile') }}</span></a>
 				</li>
+				@can('backup-app')
 				<li class="{{ route_is('backup.index') ? 'active' : '' }}">
 					<a href="{{ route('backup.index') }}"><i class="fas fa-cloud-upload-alt"></i> <span>{{ __('menu.backup') }}</span></a>
 				</li>
+				@endcan
 				@can('view-settings')
 				<li class="{{ route_is('settings') ? 'active' : '' }}">
 					<a href="{{ route('settings') }}">

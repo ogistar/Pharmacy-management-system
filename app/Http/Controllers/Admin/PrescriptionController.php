@@ -17,6 +17,16 @@ use Illuminate\Support\Facades\DB;
 
 class PrescriptionController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view-prescription')->only(['index']);
+        $this->middleware('permission:create-prescription')->only(['store']);
+        $this->middleware('permission:edit-prescription')->only(['update']);
+        $this->middleware('permission:destroy-prescription')->only(['destroy']);
+        $this->middleware('permission:approve-prescription')->only(['approve']);
+        $this->middleware('permission:dispense-prescription')->only(['dispense']);
+    }
+
     public function index(Request $request)
     {
         $title = 'prescriptions';

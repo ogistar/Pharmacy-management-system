@@ -13,6 +13,11 @@ use App\Http\Controllers\Controller;
 
 class DashboardController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view-reports');
+    }
+
     public function index(Request $request){
         $title = 'dashboard';
         $days = max((int) $request->query('days', 7), 1);

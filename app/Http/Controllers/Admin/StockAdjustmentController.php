@@ -11,6 +11,11 @@ use Illuminate\Support\Facades\DB;
 
 class StockAdjustmentController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:create-stock-adjustment')->only(['store']);
+    }
+
     public function store(Request $request)
     {
         $data = $request->validate([

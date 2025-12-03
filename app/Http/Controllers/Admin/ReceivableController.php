@@ -11,6 +11,12 @@ use Yajra\DataTables\DataTables;
 
 class ReceivableController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view-receivable')->only(['index','show']);
+        $this->middleware('permission:pay-receivable')->only(['pay']);
+    }
+
     public function index()
     {
         $title = 'receivables';

@@ -32,6 +32,17 @@ class RolesAndPermissionsSeeder extends Seeder
           'view-role','edit-role','destroy-role','create-role',
           'view-permission','create-permission','edit-permission','destroy-permission',
           'view-expired-products','view-outstock-products','backup-app','backup-db','view-settings',
+          'view-patient','create-patient','edit-patient','destroy-patient',
+          'view-prescription','create-prescription','edit-prescription','destroy-prescription','approve-prescription','dispense-prescription',
+          'view-receivable','pay-receivable',
+          'view-compound','create-compound','edit-compound','destroy-compound',
+          'view-batch',
+          'view-stock-opname','create-stock-opname',
+          'create-stock-transfer',
+          'create-stock-adjustment',
+          'create-sale-return','create-purchase-return',
+          'view-stock-movement',
+          'view-cash-session','open-cash-session','close-cash-session',
 
         ];
        $permissions = collect($arrayOfPermissionNames)->map(function ($permission) {

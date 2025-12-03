@@ -12,6 +12,12 @@ use Illuminate\Support\Facades\DB;
 
 class StockOpnameController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view-stock-opname')->only(['index']);
+        $this->middleware('permission:create-stock-opname')->only(['store']);
+    }
+
     public function index()
     {
         $title = 'stock_opname';

@@ -9,6 +9,14 @@ use Yajra\DataTables\DataTables;
 
 class CategoryController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view-category')->only(['index']);
+        $this->middleware('permission:create-category')->only(['store']);
+        $this->middleware('permission:edit-category')->only(['update']);
+        $this->middleware('permission:destroy-category')->only(['destroy']);
+    }
+
     /**
      * Display a listing of the resource.
      *

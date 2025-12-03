@@ -9,6 +9,14 @@ use Yajra\DataTables\DataTables;
 
 class SupplierController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view-supplier')->only(['index','show']);
+        $this->middleware('permission:create-supplier')->only(['create','store']);
+        $this->middleware('permission:edit-supplier')->only(['edit','update']);
+        $this->middleware('permission:destroy-supplier')->only(['destroy']);
+    }
+
     /**
      * Display a listing of the resource.
      *

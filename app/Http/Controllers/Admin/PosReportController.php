@@ -11,6 +11,11 @@ use Illuminate\Support\Carbon;
 
 class PosReportController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view-reports');
+    }
+
     public function index()
     {
         $title = 'sales reports';

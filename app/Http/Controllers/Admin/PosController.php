@@ -19,6 +19,12 @@ use App\Models\StockMovement;
 
 class PosController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view-sales')->only(['index','searchProducts','fromPrescription','compounds']);
+        $this->middleware('permission:create-sale')->only(['checkout']);
+    }
+
     public function index()
     {
         $patients = Patient::orderBy('name')->select('id','name','phone','dob')->get();

@@ -11,6 +11,11 @@ use Illuminate\Support\Facades\DB;
 
 class PurchaseReturnController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:create-purchase-return')->only(['store']);
+    }
+
     public function store(Request $request)
     {
         $data = $request->validate([

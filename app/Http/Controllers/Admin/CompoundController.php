@@ -11,6 +11,14 @@ use Illuminate\Support\Facades\DB;
 
 class CompoundController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view-compound')->only(['index']);
+        $this->middleware('permission:create-compound')->only(['store']);
+        $this->middleware('permission:edit-compound')->only(['update']);
+        $this->middleware('permission:destroy-compound')->only(['destroy']);
+    }
+
     public function index()
     {
         $title = 'compounds';

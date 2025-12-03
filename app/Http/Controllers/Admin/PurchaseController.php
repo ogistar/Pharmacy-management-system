@@ -14,6 +14,14 @@ use App\Models\StockMovement;
 
 class PurchaseController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view-purchase')->only(['index','reports','generateReport','preview','search']);
+        $this->middleware('permission:create-purchase')->only(['create','store']);
+        $this->middleware('permission:edit-purchase')->only(['edit','update']);
+        $this->middleware('permission:destroy-purchase')->only(['destroy']);
+    }
+
     /**
      * Display a listing of the resource.
      *

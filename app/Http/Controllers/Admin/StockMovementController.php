@@ -9,6 +9,11 @@ use Illuminate\Http\Request;
 
 class StockMovementController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view-stock-movement');
+    }
+
     public function index(Request $request)
     {
         $title = 'stock movements';

@@ -10,6 +10,11 @@ use Illuminate\Support\Facades\DB;
 
 class StockTransferController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:create-stock-transfer')->only(['store']);
+    }
+
     public function store(Request $request)
     {
         $data = $request->validate([

@@ -12,6 +12,16 @@ use QCod\AppSettings\Setting\AppSettings;
 
 class ProductController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view-products')->only(['index','create','edit']);
+        $this->middleware('permission:create-product')->only(['store']);
+        $this->middleware('permission:edit-product')->only(['update']);
+        $this->middleware('permission:destroy-product')->only(['destroy']);
+        $this->middleware('permission:view-expired-products')->only(['expired']);
+        $this->middleware('permission:view-outstock-products')->only(['outstock']);
+    }
+
     /**
      * Display a listing of the resource.
      *
