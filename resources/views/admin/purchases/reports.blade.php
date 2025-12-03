@@ -7,6 +7,16 @@
     
 @endpush
 
+@php
+    $currencySymbol = settings('app_currency_symbol', 'Rp');
+    $currencyDecimal = settings('app_currency_decimal', ',');
+    $currencyThousand = settings('app_currency_thousand', '.');
+    $formatAmount = function ($value) use ($currencyDecimal, $currencyThousand) {
+        $formatted = number_format((float) ($value ?? 0), 2, $currencyDecimal, $currencyThousand);
+        return rtrim(rtrim($formatted, '0'), $currencyDecimal);
+    };
+@endphp
+
 @push('page-header')
 <div class="col-sm-7 col-auto">
 	<h3 class="page-title">Purchases Reports</h3>
@@ -34,7 +44,7 @@
                                     <th>Medicine Name</th>
                                     <th>Category</th>
                                     <th>Supplier</th>
-                                    <th>Purchase Cost</th>
+                                    <th>Purchase Cost ({{ $currencySymbol }})</th>
                                     <th>Quantity</th>
                                     <th>Expire Date</th>                                </tr>
                             </thead>
@@ -53,9 +63,9 @@
                                         </h2>
                                     </td>
                                     <td>{{$purchase->category->name}}</td>
-                                    <td>{{AppSettings::get('app_currency', '$')}}{{$purchase->price}}</td>
-                                    <td>{{$purchase->quantity}}</td>
                                     <td>{{$purchase->supplier->name}}</td>
+                                    <td>{{ $formatAmount($purchase->price) }}</td>
+                                    <td>{{$purchase->quantity}}</td>
                                     <td>{{date_format(date_create($purchase->expiry_date),"d M, Y")}}</td>
                                 </tr>
                                 @endif

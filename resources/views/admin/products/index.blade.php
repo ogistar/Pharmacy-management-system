@@ -6,6 +6,12 @@
 	
 @endpush
 
+@php
+	$currencySymbol = settings('app_currency_symbol', 'Rp');
+	$currencyDecimal = settings('app_currency_decimal', ',');
+	$currencyThousand = settings('app_currency_thousand', '.');
+@endphp
+
 @push('page-header')
 <div class="col-sm-7 col-auto">
 	<h3 class="page-title">Products</h3>
@@ -32,7 +38,7 @@
 							<tr>
 								<th>Product Name</th>
 								<th>Category</th>
-								<th>Price</th>
+								<th>Price ({{ $currencySymbol }})</th>
 								<th>Quantity</th>
 								<th>Discount</th>
 								<th>Expiry Date</th>
@@ -57,6 +63,17 @@
 @push('page-js')
 <script>
     $(document).ready(function() {
+		const decimalSeparator = @json($currencyDecimal);
+		const thousandSeparator = @json($currencyThousand);
+		const formatAmount = (value) => {
+			const num = Number(value ?? 0);
+			if (Number.isNaN(num)) return value ?? '';
+			const parts = num.toFixed(2).split('.');
+			const intPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, thousandSeparator);
+			const decimalPart = parts[1] === '00' ? '' : decimalSeparator + parts[1];
+			return `${intPart}${decimalPart}`;
+		};
+
         var table = $('#product-table').DataTable({
             processing: true,
             serverSide: true,
@@ -64,7 +81,7 @@
             columns: [
                 {data: 'product', name: 'product'},
                 {data: 'category', name: 'category'},
-                {data: 'price', name: 'price'},
+                {data: 'price', name: 'price', render: data => formatAmount(data)},
                 {data: 'quantity', name: 'quantity'},
                 {data: 'discount', name: 'discount'},
 				{data: 'expiry_date', name: 'expiry_date'},

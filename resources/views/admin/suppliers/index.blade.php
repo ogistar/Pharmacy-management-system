@@ -30,7 +30,6 @@
 					<table id="supplier-table" class="datatable table table-hover table-center mb-0">
 						<thead>
 							<tr>
-								<th>Product</th>
 								<th>Name</th>
 								<th>Phone</th>
 								<th>Email</th>
@@ -42,9 +41,6 @@
 						<tbody>
 							{{-- @foreach ($suppliers as $supplier)
 							<tr>
-								<td>										
-									{{$supplier->product}}
-								</td>
 								<td>{{$supplier->name}}</td>
 								<td>{{$supplier->phone}}</td>
 								<td>{{$supplier->email}}</td>
@@ -82,7 +78,6 @@
             serverSide: true,
             ajax: "{{route('suppliers.index')}}",
             columns: [
-                {data: 'product', name: 'product'},
                 {data: 'name', name: 'name'},
                 {data: 'email', name: 'email'},
                 {data: 'phone', name: 'phone'},

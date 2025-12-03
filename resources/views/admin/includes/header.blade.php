@@ -26,10 +26,17 @@
 	
 	<!-- Header Right Menu -->
 	<ul class="nav user-menu">
+		<li class="nav-item">
+			<button id="theme-toggle" class="btn btn-sm theme-toggle-btn" style="margin-top:10px;">
+				<i class="fas fa-moon" id="theme-toggle-icon" style="color:inherit;"></i>
+			</button>
+		</li>
 		<li class="nav-item dropdown">
-			<a href="#" data-target="#add_sales" title="make a sale" data-toggle="modal" class="dropdown-toggle nav-link">
-				<i class="fas fa-clipboard"></i>
-			</a>
+			<a href="#" class="dropdown-toggle nav-link" data-toggle="dropdown"><i class="fe fe-globe"></i></a>
+			<div class="dropdown-menu">
+				<a class="dropdown-item" href="{{ route('lang.switch','en') }}">English</a>
+				<a class="dropdown-item" href="{{ route('lang.switch','id') }}">Bahasa Indonesia</a>
+			</div>
 		</li>
 		<!-- Notifications -->
 		<li class="nav-item dropdown noti-dropdown">
@@ -40,6 +47,7 @@
 			<div class="dropdown-menu notifications">
 				<div class="topnav-dropdown-header">
 					<span class="notification-title">Notifications</span>
+					<a href="{{route('notification.expiry')}}" class="clear-noti">Refresh ED <7d</a>
 					<a href="{{route('mark-as-read')}}" class="clear-noti">Mark All As Read </a>
 				</div>
 				<div class="noti-content">

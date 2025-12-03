@@ -1,0 +1,42 @@
+<!-- Racikan modal -->
+<div id="compound-backdrop" class="modal-backdrop-lite">
+    <div class="modal-card">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="mb-0">Tambah Racikan ke POS</h5>
+            <button id="compound-close" class="modal-close">&times;</button>
+        </div>
+        <form id="compound-form">
+            <div class="form-group">
+                <label>Nama racikan</label>
+                <input id="compound-name" class="form-control" placeholder="Contoh: Racikan Batuk Anak" required>
+            </div>
+            <div class="form-group">
+                <label>Jumlah racikan</label>
+                <input id="compound-qty" class="form-control" type="number" min="1" value="1">
+            </div>
+            <div class="form-group">
+                <label>Mode harga</label>
+                <select id="compound-mode" class="form-control">
+                    <option value="manual">Manual</option>
+                    <option value="bom">BOM (stok bahan dikurangi)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Harga racikan (isi sesuai hasil perhitungan / BOM)</label>
+                <input id="compound-price" class="form-control" type="number" step="0.01" placeholder="Harga jual racikan" required>
+                <small class="text-muted">Jika memilih BOM, stok komponen akan dikurangi sesuai daftar di bawah.</small>
+            </div>
+            <div class="form-group">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <label class="mb-0">Komponen (Purchase ID & Qty)</label>
+                    <button type="button" id="add-component-row" class="btn btn-sm btn-outline-secondary">Tambah komponen</button>
+                </div>
+                <div id="components-container"></div>
+            </div>
+            <div class="d-flex justify-content-end" style="gap:8px;">
+                <button type="button" id="compound-cancel" class="btn btn-light">Batal</button>
+                <button type="submit" class="btn btn-primary">Tambah ke keranjang</button>
+            </div>
+        </form>
+    </div>
+</div>

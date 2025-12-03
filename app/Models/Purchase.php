@@ -12,7 +12,15 @@ class Purchase extends Model
     protected $fillable = [
         'product','category_id','supplier_id',
         'cost_price','quantity','expiry_date',
-        'image'
+        'image','batch_no','unit_name','unit_size','conversion_factor',
+        'rack_location'
+    ];
+
+    /**
+     * Cast attributes to proper types.
+     */
+    protected $casts = [
+        'quantity' => 'integer',
     ];
 
     public function supplier(){

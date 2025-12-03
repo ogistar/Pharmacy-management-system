@@ -10,6 +10,7 @@ use Yajra\DataTables\DataTables;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use QCod\AppSettings\Setting\AppSettings;
+use App\Models\StockMovement;
 
 class PurchaseController extends Controller
 {
@@ -40,7 +41,7 @@ class PurchaseController extends Controller
                     }
                 })
                 ->addColumn('cost_price',function($purchase){
-                    return settings('app_currency','$'). ' '. $purchase->cost_price;
+                    return $purchase->cost_price;
                 })
                 ->addColumn('supplier',function($purchase){
                     return $purchase->supplier->name;
@@ -51,13 +52,15 @@ class PurchaseController extends Controller
                 ->addColumn('action', function ($row) {
                     $editbtn = '<a href="'.route("purchases.edit", $row->id).'" class="editbtn"><button class="btn btn-primary"><i class="fas fa-edit"></i></button></a>';
                     $deletebtn = '<a data-id="'.$row->id.'" data-route="'.route('purchases.destroy', $row->id).'" href="javascript:void(0)" id="deletebtn"><button class="btn btn-danger"><i class="fas fa-trash"></i></button></a>';
+                    $returnBtn = '<button class="btn btn-warning btn-sm purchase-return-btn" data-id="'.$row->id.'" data-qty="'.$row->quantity.'" title="Retur ke supplier"><i class="fas fa-undo-alt"></i></button>';
+                    $adjustBtn = '<button class="btn btn-info btn-sm adjust-btn text-white" data-id="'.$row->id.'" data-qty="'.$row->quantity.'" title="Penyesuaian stok"><i class="fas fa-balance-scale"></i></button>';
                     if (!auth()->user()->hasPermissionTo('edit-purchase')) {
                         $editbtn = '';
                     }
                     if (!auth()->user()->hasPermissionTo('destroy-purchase')) {
                         $deletebtn = '';
                     }
-                    $btn = $editbtn.' '.$deletebtn;
+                    $btn = $editbtn.' '.$deletebtn.' '.$returnBtn.' '.$adjustBtn;
                     return $btn;
                 })
                 ->rawColumns(['product','action'])
@@ -66,6 +69,30 @@ class PurchaseController extends Controller
         return view('admin.purchases.index',compact(
             'title'
         ));
+    }
+
+    /**
+     * Lightweight search for purchases/batches (used by log stok filter).
+     */
+    public function search(Request $request)
+    {
+        $q = $request->query('q', '');
+        if ($q === '') {
+            return response()->json([]);
+        }
+        $rows = Purchase::select('id','product','batch_no','quantity')
+            ->whereNotNull('product')
+            ->where('product', 'like', "%{$q}%")
+            ->orderBy('product')
+            ->limit(20)
+            ->get()
+            ->map(function($p){
+                return [
+                    'id' => $p->id,
+                    'text' => $p->product . ' | Batch ' . ($p->batch_no ?? '-') . ' | Stok ' . ($p->quantity ?? 0),
+                ];
+            });
+        return response()->json($rows);
     }
 
     /**
@@ -99,13 +126,23 @@ class PurchaseController extends Controller
             'expiry_date'=>'required',
             'supplier'=>'required',
             'image'=>'file|image|mimes:jpg,jpeg,png,gif',
+            'batch_no' => 'required|string|max:100',
+            'rack_location' => 'nullable|string|max:100',
+            // optional selling fields
+            'price_retail' => 'nullable|numeric|min:0',
+            'price_wholesale' => 'nullable|numeric|min:0',
+            'price_insurance' => 'nullable|numeric|min:0',
+            'promo_name' => 'nullable|string|max:200',
+            'promo_percent' => 'nullable|numeric|min:0|max:100',
+            'bundle_qty' => 'nullable|integer|min:1',
+            'bundle_price' => 'nullable|numeric|min:0',
         ]);
         $imageName = null;
         if($request->hasFile('image')){
             $imageName = time().'.'.$request->image->extension();
             $request->image->move(public_path('storage/purchases'), $imageName);
         }
-        Purchase::create([
+        $purchase = Purchase::create([
             'product'=>$request->product,
             'category_id'=>$request->category,
             'supplier_id'=>$request->supplier,
@@ -113,7 +150,34 @@ class PurchaseController extends Controller
             'quantity'=>$request->quantity,
             'expiry_date'=>$request->expiry_date,
             'image'=>$imageName,
+            'batch_no'=>$request->batch_no,
+            'rack_location'=>$request->rack_location,
         ]);
+
+        // Ensure a product row exists for pricing / POS
+        $purchase->purchaseProduct()->updateOrCreate(
+            ['purchase_id' => $purchase->id],
+            [
+                'price_retail' => $request->input('price_retail', $request->cost_price),
+                'price_wholesale' => $request->input('price_wholesale'),
+                'price_insurance' => $request->input('price_insurance'),
+                'promo_name' => $request->input('promo_name'),
+                'promo_percent' => $request->input('promo_percent'),
+                'bundle_qty' => $request->input('bundle_qty'),
+                'bundle_price' => $request->input('bundle_price'),
+            ]
+        );
+
+        StockMovement::create([
+            'purchase_id' => $purchase->id,
+            'user_id' => $request->user()->id ?? null,
+            'type' => 'in',
+            'quantity' => (int)$request->quantity,
+            'reference_type' => 'purchase',
+            'reference_id' => $purchase->id,
+            'note' => 'Stock masuk dari pembelian',
+        ]);
+
         $notifications = notify("Purchase has been added");
         return redirect()->route('purchases.index')->with($notifications);
     }
@@ -153,12 +217,22 @@ class PurchaseController extends Controller
             'expiry_date'=>'required',
             'supplier'=>'required',
             'image'=>'file|image|mimes:jpg,jpeg,png,gif',
+            'batch_no' => 'required|string|max:100',
+            'rack_location' => 'nullable|string|max:100',
+            'price_retail' => 'nullable|numeric|min:0',
+            'price_wholesale' => 'nullable|numeric|min:0',
+            'price_insurance' => 'nullable|numeric|min:0',
+            'promo_name' => 'nullable|string|max:200',
+            'promo_percent' => 'nullable|numeric|min:0|max:100',
+            'bundle_qty' => 'nullable|integer|min:1',
+            'bundle_price' => 'nullable|numeric|min:0',
         ]);
         $imageName = $purchase->image;
         if($request->hasFile('image')){
             $imageName = time().'.'.$request->image->extension();
             $request->image->move(public_path('storage/purchases'), $imageName);
         }
+        $oldQty = (int) $purchase->quantity;
         $purchase->update([
             'product'=>$request->product,
             'category_id'=>$request->category,
@@ -167,7 +241,36 @@ class PurchaseController extends Controller
             'quantity'=>$request->quantity,
             'expiry_date'=>$request->expiry_date,
             'image'=>$imageName,
+            'batch_no'=>$request->batch_no,
+            'rack_location'=>$request->rack_location,
         ]);
+
+        $purchase->purchaseProduct()->updateOrCreate(
+            ['purchase_id' => $purchase->id],
+            [
+                'price_retail' => $request->input('price_retail', $request->cost_price),
+                'price_wholesale' => $request->input('price_wholesale'),
+                'price_insurance' => $request->input('price_insurance'),
+                'promo_name' => $request->input('promo_name'),
+                'promo_percent' => $request->input('promo_percent'),
+                'bundle_qty' => $request->input('bundle_qty'),
+                'bundle_price' => $request->input('bundle_price'),
+            ]
+        );
+
+        $delta = (int)$request->quantity - $oldQty;
+        if ($delta !== 0) {
+            StockMovement::create([
+                'purchase_id' => $purchase->id,
+                'user_id' => $request->user()->id ?? null,
+                'type' => $delta > 0 ? 'in' : 'adjust',
+                'quantity' => abs($delta),
+                'reference_type' => 'purchase_update',
+                'reference_id' => $purchase->id,
+                'note' => 'Penyesuaian stok saat update pembelian',
+            ]);
+        }
+
         $notifications = notify("Purchase has been updated");
         return redirect()->route('purchases.index')->with($notifications);
     }
@@ -198,5 +301,14 @@ class PurchaseController extends Controller
     public function destroy(Request $request)
     {
         return Purchase::findOrFail($request->id)->delete();
+    }
+
+    /**
+     * Preview purchase batch detail.
+     */
+    public function preview(Purchase $purchase)
+    {
+        $purchase->load(['supplier','category']);
+        return view('admin.stock-tools.partials.purchase-preview', compact('purchase'));
     }
 }

@@ -23,15 +23,55 @@ return [
                     'hint' => 'You can set the app name here' // help block text for input
                 ],
                 [
-                    'name' => 'app_currency',
-                    'type' => 'text',
-                    'label' => 'App Currency',
-                    'placeholder' => 'Application Currency',
-                    'class' => 'form-control',
-                    'style' => '', // any inline styles
-                    'rules' => 'required|max:10', // validation rules for this input
-                    'value' => '$', // any default value
-                    'hint' => 'Use your currency symbol like $',
+                    'name' => 'app_currency_code',
+                    'type' => 'select',
+                    'label' => 'Currency',
+                    'options' => [
+                        'IDR' => 'IDR (Rupiah)',
+                        'USD' => 'USD (US Dollar)',
+                        'SGD' => 'SGD (Singapore Dollar)',
+                        'MYR' => 'MYR (Malaysia Ringgit)',
+                        'JPY' => 'JPY (Japan Yen)',
+                        'EUR' => 'EUR (Euro)',
+                    ],
+                    'value' => 'IDR',
+                    'hint' => 'Pilih mata uang utama aplikasi',
+                ],
+                [
+                    'name' => 'app_currency_symbol',
+                    'type' => 'select',
+                    'label' => 'Currency Symbol',
+                    'options' => [
+                        'Rp' => 'Rp (Rupiah)',
+                        '$' => '$ (Dollar)',
+                        'S$' => 'S$ (Singapore Dollar)',
+                        'RM' => 'RM (Ringgit)',
+                        '¥' => '¥ (Yen)',
+                        '€' => '€ (Euro)',
+                    ],
+                    'value' => 'Rp',
+                    'hint' => 'Simbol yang dipakai di tampilan',
+                ],
+                [
+                    'name' => 'app_currency_thousand',
+                    'type' => 'select',
+                    'label' => 'Thousand Separator',
+                    'options' => [
+                        ',' => '1,000',
+                        '.' => '1.000',
+                        ' ' => '1 000',
+                    ],
+                    'value' => '.',
+                ],
+                [
+                    'name' => 'app_currency_decimal',
+                    'type' => 'select',
+                    'label' => 'Decimal Separator',
+                    'options' => [
+                        '.' => '0.00',
+                        ',' => '0,00',
+                    ],
+                    'value' => ',',
                 ],
                 [
                     'name' => 'logo',
@@ -57,6 +97,34 @@ return [
                     'preview_style' => 'height:40px'
                 ],
             ]
+        ],
+        'printer' => [
+            'title' => 'Thermal Printer',
+            'icon' => 'fa fa-print',
+            'inputs' => [
+                [
+                    'name' => 'thermal_enabled',
+                    'type' => 'boolean',
+                    'label' => 'Enable thermal printing',
+                    'hint' => 'Aktifkan jika ingin cetak struk thermal',
+                    'value' => false,
+                ],
+                [
+                    'name' => 'thermal_printer_name',
+                    'type' => 'text',
+                    'label' => 'Device name/IP',
+                    'placeholder' => 'Contoh: EPSON-TM-T82 / 192.168.1.50',
+                    'rules' => 'nullable|string|max:100',
+                ],
+                [
+                    'name' => 'thermal_paper_width',
+                    'type' => 'text',
+                    'label' => 'Paper width',
+                    'placeholder' => '80mm atau 58mm',
+                    'rules' => 'nullable|string|max:20',
+                    'value' => '80mm',
+                ],
+            ],
         ],
         
     ],

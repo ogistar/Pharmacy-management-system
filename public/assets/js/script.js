@@ -43,7 +43,15 @@ $(document).ready(function(){
 				$(this).next('ul').slideUp(350);
 			}
 		});
-		$('#sidebar-menu ul li.submenu a.active').parents('li:last').children('a:first').addClass('active').trigger('click');
+		// Ensure parent submenu opens if any child <li> is marked active (server-side)
+		$('#sidebar-menu ul li.submenu').each(function(){
+			var $submenu = $(this);
+			if($submenu.find('li.active').length > 0 || $submenu.find('a.active').length > 0){
+				// show the submenu and mark parent anchor as subdrop/open
+				$submenu.children('a').addClass('subdrop');
+				$submenu.children('ul').show();
+			}
+		});
 	}
 	
 	// Sidebar Initiate
@@ -195,10 +203,22 @@ $(document).ready(function(){
 	$(document).on('click', '#toggle_btn', function() {
 		if($('body').hasClass('mini-sidebar')) {
 			$('body').removeClass('mini-sidebar');
-			$('.subdrop + ul').slideDown();
+			// Expand submenus that were intentionally opened (subdrop) and keep active ones open
+			$('.subdrop + ul').each(function(){
+				var $li = $(this).closest('li');
+				if($li.hasClass('active') || $(this).prev('a').hasClass('subdrop')){
+					$(this).slideDown();
+				}
+			});
 		} else {
 			$('body').addClass('mini-sidebar');
-			$('.subdrop + ul').slideUp();
+			// Only collapse submenus that are NOT active (keep active submenu visible)
+			$('.subdrop + ul').each(function(){
+				var $li = $(this).closest('li');
+				if(!$li.hasClass('active')){
+					$(this).slideUp();
+				}
+			});
 		}
 		setTimeout(function(){ 
 			mA.redraw();
@@ -212,10 +232,22 @@ $(document).ready(function(){
 			var targ = $(e.target).closest('.sidebar').length;
 			if(targ) {
 				$('body').addClass('expand-menu');
-				$('.subdrop + ul').slideDown();
+				// Expand submenus that are open or active
+				$('.subdrop + ul').each(function(){
+					var $li = $(this).closest('li');
+					if($li.hasClass('active') || $(this).prev('a').hasClass('subdrop')){
+						$(this).slideDown();
+					}
+				});
 			} else {
 				$('body').removeClass('expand-menu');
-				$('.subdrop + ul').slideUp();
+				// Collapse only non-active submenus
+				$('.subdrop + ul').each(function(){
+					var $li = $(this).closest('li');
+					if(!$li.hasClass('active')){
+						$(this).slideUp();
+					}
+				});
 			}
 			return false;
 		}

@@ -45,7 +45,11 @@ class ProductController extends Controller
                     return $category;
                 })
                 ->addColumn('price',function($product){
-                    return settings('app_currency','$').' '. $product->price;
+                    $price = $product->price_retail ?? $product->price;
+                    return $price;
+                })
+                ->addColumn('discount',function($product){
+                    return $product->discount ?? 0;
                 })
                 ->addColumn('quantity',function($product){
                     if(!empty($product->purchase)){
@@ -103,19 +107,32 @@ class ProductController extends Controller
     {
         $this->validate($request,[
             'product'=>'required|max:200',
-            'price'=>'required|min:1',
-            'discount'=>'nullable',
+            'price_retail'=>'required|numeric|min:0',
+            'price_wholesale'=>'nullable|numeric|min:0',
+            'price_insurance'=>'nullable|numeric|min:0',
+            'discount'=>'nullable|numeric|min:0',
+            'promo_percent' => 'nullable|numeric|min:0|max:100',
+            'bundle_qty' => 'nullable|integer|min:1',
+            'bundle_price' => 'nullable|numeric|min:0',
             'description'=>'nullable|max:255',
         ]);
-        $price = $request->price;
+        $priceRetail = $request->price_retail;
+        $legacyPrice = $priceRetail; // maintain legacy price column for backward compatibility
         if($request->discount >0){
-           $price = $request->discount * $request->price;
+           $legacyPrice = $request->discount * $priceRetail;
         }
         Product::create([
             'purchase_id'=>$request->product,
-            'price'=>$price,
+            'price'=>$legacyPrice,
+            'price_retail'=>$priceRetail,
+            'price_wholesale'=>$request->price_wholesale,
+            'price_insurance'=>$request->price_insurance,
             'discount'=>$request->discount,
             'description'=>$request->description,
+            'promo_name'=>$request->promo_name,
+            'promo_percent'=>$request->promo_percent ?? 0,
+            'bundle_qty'=>$request->bundle_qty,
+            'bundle_price'=>$request->bundle_price,
         ]);
         $notification = notify("Product has been added");
         return redirect()->route('products.index')->with($notification);
@@ -148,20 +165,33 @@ class ProductController extends Controller
     {
         $this->validate($request,[
             'product'=>'required|max:200',
-            'price'=>'required',
-            'discount'=>'nullable',
+            'price_retail'=>'required|numeric|min:0',
+            'price_wholesale'=>'nullable|numeric|min:0',
+            'price_insurance'=>'nullable|numeric|min:0',
+            'discount'=>'nullable|numeric|min:0',
+            'promo_percent' => 'nullable|numeric|min:0|max:100',
+            'bundle_qty' => 'nullable|integer|min:1',
+            'bundle_price' => 'nullable|numeric|min:0',
             'description'=>'nullable|max:255',
         ]);
 
-        $price = $request->price;
+        $priceRetail = $request->price_retail;
+        $legacyPrice = $priceRetail;
         if($request->discount >0){
-           $price = $request->discount * $request->price;
+           $legacyPrice = $request->discount * $priceRetail;
         }
        $product->update([
             'purchase_id'=>$request->product,
-            'price'=>$price,
+            'price'=>$legacyPrice,
+            'price_retail'=>$priceRetail,
+            'price_wholesale'=>$request->price_wholesale,
+            'price_insurance'=>$request->price_insurance,
             'discount'=>$request->discount,
             'description'=>$request->description,
+            'promo_name'=>$request->promo_name,
+            'promo_percent'=>$request->promo_percent ?? 0,
+            'bundle_qty'=>$request->bundle_qty,
+            'bundle_price'=>$request->bundle_price,
         ]);
         $notification = notify('product has been updated');
         return redirect()->route('products.index')->with($notification);
@@ -176,40 +206,35 @@ class ProductController extends Controller
     public function expired(Request $request){
         $title = "expired Products";
         if($request->ajax()){
-            $products = Purchase::whereDate('expiry_date', '<=', Carbon::now())->get();
+            $products = Product::whereHas('purchase', function($q){
+                $q->whereDate('expiry_date','<=', Carbon::now());
+            })->with('purchase.category')->get();
+
             return DataTables::of($products)
                 ->addColumn('product',function($product){
                     $image = '';
-                    if(!empty($product->purchase)){
-                        $image = null;
-                        if(!empty($product->purchase->image)){
-                            $image = '<span class="avatar avatar-sm mr-2">
-                            <img class="avatar-img" src="'.asset("storage/purchases/".$product->purchase->image).'" alt="image">
-                            </span>';
-                        }
-                        return $product->purchase->product. ' ' . $image;
+                    if(!empty($product->purchase) && !empty($product->purchase->image)){
+                        $image = '<span class="avatar avatar-sm mr-2">
+                        <img class="avatar-img" src="'.asset("storage/purchases/".$product->purchase->image).'" alt="image">
+                        </span>';
                     }
+                    $name = $product->purchase->product ?? $product->description ?? 'Produk';
+                    return $name.' '.$image;
                 })
-
                 ->addColumn('category',function($product){
-                    $category = null;
-                    if(!empty($product->purchase->category)){
-                        $category = $product->purchase->category->name;
-                    }
-                    return $category;
+                    return $product->purchase->category->name ?? null;
                 })
                 ->addColumn('price',function($product){
-                    return settings('app_currency','$').' '. $product->price;
+                    return $product->price_retail ?? $product->price;
+                })
+                ->addColumn('discount',function($product){
+                    return $product->discount ?? 0;
                 })
                 ->addColumn('quantity',function($product){
-                    if(!empty($product->purchase)){
-                        return $product->purchase->quantity;
-                    }
+                    return $product->purchase->quantity ?? 0;
                 })
                 ->addColumn('expiry_date',function($product){
-                    if(!empty($product->purchase)){
-                        return date_format(date_create($product->purchase->expiry_date),'d M, Y');
-                    }
+                    return $product->purchase?->expiry_date ? date_format(date_create($product->purchase->expiry_date),'d M, Y') : null;
                 })
                 ->addColumn('action', function ($row) {
                     $editbtn = '<a href="'.route("products.edit", $row->id).'" class="editbtn"><button class="btn btn-primary"><i class="fas fa-edit"></i></button></a>';
@@ -220,8 +245,7 @@ class ProductController extends Controller
                     if (!auth()->user()->hasPermissionTo('destroy-purchase')) {
                         $deletebtn = '';
                     }
-                    $btn = $editbtn.' '.$deletebtn;
-                    return $btn;
+                    return trim($editbtn.' '.$deletebtn);
                 })
                 ->rawColumns(['product','action'])
                 ->make(true);
@@ -243,7 +267,7 @@ class ProductController extends Controller
         if($request->ajax()){
             $products = Product::whereHas('purchase', function($q){
                 return $q->where('quantity', '<=', 0);
-            })->get();
+            })->with('purchase.category')->get();
             return DataTables::of($products)
                 ->addColumn('product',function($product){
                     $image = '';
@@ -254,7 +278,7 @@ class ProductController extends Controller
                             <img class="avatar-img" src="'.asset("storage/purchases/".$product->purchase->image).'" alt="image">
                             </span>';
                         }
-                        return $product->purchase->product. ' ' . $image;
+                        return ($product->purchase->product ?? $product->description ?? 'Produk').' ' . $image;
                     }
                 })
                
@@ -266,7 +290,11 @@ class ProductController extends Controller
                     return $category;
                 })
                 ->addColumn('price',function($product){
-                    return settings('app_currency','$').' '. $product->price;
+                    $price = $product->price_retail ?? $product->price;
+                    return $price;
+                })
+                ->addColumn('discount',function($product){
+                    return $product->discount ?? 0;
                 })
                 ->addColumn('quantity',function($product){
                     if(!empty($product->purchase)){

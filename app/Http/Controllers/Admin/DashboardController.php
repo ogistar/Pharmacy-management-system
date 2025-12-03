@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Models\Sale;
+use App\Models\Invoice;
+use App\Models\SaleItem;
 use App\Models\Category;
 use App\Models\Purchase;
 use App\Models\Supplier;
@@ -12,18 +13,41 @@ use App\Http\Controllers\Controller;
 
 class DashboardController extends Controller
 {
-    public function index(){
+    public function index(Request $request){
         $title = 'dashboard';
-        $total_purchases = Purchase::where('expiry_date','!=',Carbon::now())->count();
+        $days = max((int) $request->query('days', 7), 1);
+        $startInput = $request->query('start_date');
+        $endInput = $request->query('end_date');
+
+        try {
+            if ($startInput && $endInput) {
+                $startDate = Carbon::parse($startInput)->startOfDay();
+                $endDate = Carbon::parse($endInput)->endOfDay();
+            } else {
+                $endDate = Carbon::now()->endOfDay();
+                $startDate = (clone $endDate)->startOfDay()->subDays($days - 1);
+            }
+        } catch (\Exception $e) {
+            $endDate = Carbon::now()->endOfDay();
+            $startDate = (clone $endDate)->startOfDay()->subDays($days - 1);
+        }
+
+        $rangeLabel = $startDate->toDateString() . ' s/d ' . $endDate->toDateString();
+
+        $invoiceRangeQuery = Invoice::whereBetween('created_at', [$startDate, $endDate]);
+        $latest_sales = (clone $invoiceRangeQuery)->with('patient')->orderBy('created_at','desc')->limit(10)->get();
+        $today_sales = (clone $invoiceRangeQuery)->sum('total_amount');
+        $total_sales = (clone $invoiceRangeQuery)->count();
+
+        $total_purchases = Purchase::whereBetween('created_at', [$startDate, $endDate])->count();
         $total_categories = Category::count();
         $total_suppliers = Supplier::count();
-        $total_sales = Sale::count();
         
         $pieChart = app()->chartjs
                 ->name('pieChart')
                 ->type('pie')
                 ->size(['width' => 400, 'height' => 200])
-                ->labels(['Total Purchases', 'Total Suppliers','Total Sales'])
+                ->labels(['Purchases (range)', 'Suppliers (total)','Invoices (range)'])
                 ->datasets([
                     [
                         'backgroundColor' => ['#FF6384', '#36A2EB','#7bb13c'],
@@ -33,12 +57,11 @@ class DashboardController extends Controller
                 ])
                 ->options([]);
         
-        $total_expired_products = Purchase::whereDate('expiry_date', '=', Carbon::now())->count();
-        $latest_sales = Sale::whereDate('created_at','=',Carbon::now())->get();
-        $today_sales = Sale::whereDate('created_at','=',Carbon::now())->sum('total_price');
+        $total_expired_products = Purchase::whereDate('expiry_date', '<=', Carbon::now()->toDateString())->count();
         return view('admin.dashboard',compact(
             'title','pieChart','total_expired_products',
-            'latest_sales','today_sales','total_categories'
+            'latest_sales','today_sales','total_categories',
+            'startDate','endDate','days','rangeLabel'
         ));
     }
 }
